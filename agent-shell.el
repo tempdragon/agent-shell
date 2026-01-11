@@ -217,6 +217,14 @@ Can be one of:
                  (const :tag "No header" nil))
   :group 'agent-shell)
 
+(defcustom agent-shell-use-header-images t
+  "If non-nil, load and display agent logo images in the header.
+When set to nil, the header will fallback to text-only mode even if
+`agent-shell-header-style' is set to \\='graphical. This is useful to avoid
+issues with external programs intercepting image loading (e.g. openwith)."
+  :type 'boolean
+  :group 'agent-shell)
+
 (defcustom agent-shell-show-welcome-message t
   "Non-nil to show welcome message."
   :type 'boolean
@@ -1945,7 +1953,7 @@ BINDINGS is a list of alists defining key bindings to display, each with:
       ((or 'none (pred null)) nil)
       ('text text-header)
       ('graphical
-       (if (display-graphic-p)
+       (if (and (display-graphic-p) agent-shell-use-header-images)
            ;; +------+
            ;; | icon | Top text line
            ;; |      | Bottom text line
