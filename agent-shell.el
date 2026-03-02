@@ -1351,10 +1351,11 @@ COMMAND, when present, may be a shell command string or an argv vector."
                ;; likely selected one of: accepted/rejected/always.
                ;; Remove stale permission dialog.
                (when (and (map-nested-elt acp-notification '(params update status))
-                          (not (equal (map-nested-elt acp-notification '(params update status)) "pending")))
+                          (member (map-nested-elt acp-notification '(params update status)) '("completed" "failed" "cancelled" "rejected")))
                  ;; block-id must be the same as the one used as
                  ;; agent-shell--update-fragment param by "session/request_permission".
-                 (agent-shell--delete-fragment :state state :block-id (format "permission-%s" (map-nested-elt acp-notification '(params update toolCallId)))))
+                 (when-let ((req-id (map-nested-elt state `(:tool-calls ,(map-nested-elt acp-notification '(params update toolCallId)) :permission-request-id))))
+                    (agent-shell--delete-fragment :state state :block-id (format "permission-%s" req-id))))
                (let ((tool-call-labels (agent-shell-make-tool-call-label
                                         state (map-nested-elt acp-notification '(params update toolCallId)))))
                  (agent-shell--update-fragment
@@ -1455,7 +1456,7 @@ COMMAND, when present, may be a shell command string or an argv vector."
           :state state
           ;; block-id must be the same as the one used
           ;; in agent-shell--delete-fragment param.
-          :block-id (format "permission-%s" (map-nested-elt acp-request '(params toolCall toolCallId)))
+          :block-id (format "permission-%s" (map-elt acp-request 'id))
           :body (with-current-buffer (map-elt state :buffer)
                   (agent-shell--make-tool-call-permission-text
                    :acp-request acp-request
@@ -4510,7 +4511,7 @@ MESSAGE-TEXT: Optional message to display after sending the response."
     ;; Hide permission after sending response.
     ;; block-id must be the same as the one used as
     ;; agent-shell--update-fragment param by "session/request_permission".
-    (agent-shell--delete-fragment :state state :block-id (format "permission-%s" tool-call-id))
+    (agent-shell--delete-fragment :state state :block-id (format "permission-%s" request-id))
     (map-put! state :tool-calls
               (map-delete (map-elt state :tool-calls) tool-call-id))
     (agent-shell--emit-event
