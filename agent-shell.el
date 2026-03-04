@@ -1353,7 +1353,7 @@ COMMAND, when present, may be a shell command string or an argv vector."
                ;; likely selected one of: accepted/rejected/always.
                ;; Remove stale permission dialog.
                (when (and (map-nested-elt acp-notification '(params update status))
-                          (member (map-nested-elt acp-notification '(params update status)) '("completed" "failed" "cancelled" "rejected")))
+                          (not (equal (map-nested-elt acp-notification '(params update status)) "pending")))
                  ;; block-id must be the same as the one used as
                  ;; agent-shell--update-fragment param by "session/request_permission".
                  (when-let ((req-id (map-nested-elt state `(:tool-calls ,(map-nested-elt acp-notification '(params update toolCallId)) :permission-request-id))))
